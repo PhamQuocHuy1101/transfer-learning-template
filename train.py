@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import config as cf
+import utils
 
 # Model
 from network import Model
@@ -11,16 +12,14 @@ from network import Model
 model = Model(cf.model['n_class'], cf.model['backbone'], cf.model['drop'])
 model.to(device = cf.device)
 if cf.model['freeze']:
-    if 'resnet' in cf.model['backbone']:
-        param_dict = [
-            {'params': [p for n, p in model.named_parameters() if 'fc' in n]},  
-        ]
-    if 'b' in cf.model['backbone']:
-        param_dict = [
-            {'params': [p for n, p in model.named_parameters() if 'classifier' in n]},
-        ]
+    param_dict = [
+        {'params': model.head_params}
+    ]
 else:
-    param_dict = [{'params': model.parameters()}]
+    param_dict = [
+       {'params': model.backbone_params, 'lr': cf.optim['lr'] * 0.1},
+       {'params': model.head_params}
+    ]
 
 optimizer = optim.Adam(params = param_dict, lr = cf.optim['lr'])
 scheduler = optim.lr_scheduler.StepLR(optimizer, step_size = cf.optim['step'], gamma=cf.optim['reduce_rate'])
