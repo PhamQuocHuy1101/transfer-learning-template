@@ -1,13 +1,13 @@
 import torch
 import pandas as pd
 import config as cf
-from network import Model
+from network.transfer_model import TransferModel
 from data.model_dataset import ModelDataset
 from data.transform import to_tensor
 import time
 
 start = time.time()
-model = Model(cf.model['n_class'], cf.model['backbone'], cf.model['drop'])
+model = TransferModel(cf.model['n_class'], cf.model['backbone'], cf.model['drop'])
 model.to(device = cf.device)
 
 checkpoint = torch.load(cf.model['checkpoint'], map_location = cf.device)
