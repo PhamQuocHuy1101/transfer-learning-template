@@ -9,7 +9,8 @@ import utils
 # Model
 from network import TransferModel, Inception_resnet
 
-model = Inception_resnet(cf.model['n_class'], cf.model['backbone'], cf.model['drop'])
+model = TransferModel(cf.model['n_class'], cf.model['backbone'], cf.model['drop'])
+# model = Inception_resnet(3, cf.model['n_class'], 5, 10, 5, 0.2)
 model.to(device = cf.device)
 if cf.model['freeze']:
     param_dict = [
