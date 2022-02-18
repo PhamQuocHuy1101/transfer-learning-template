@@ -24,9 +24,9 @@ BACKBONE_MAPPING = {
     }
 }
 
-class Model(nn.Module):
+class TransferModel(nn.Module):
     def __init__(self, n_class, backbone = 'b0', drop = 0.2):
-        super(Model, self).__init__()
+        super(TransferModel, self).__init__()
         net = BACKBONE_MAPPING.get(backbone)
         self.net = net['m'](pretrained=True)
         last_layer = net['last_layer']
