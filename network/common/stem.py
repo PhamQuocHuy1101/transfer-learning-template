@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from .common import Conv2d
+from .layer import Conv2d
 
 class Stem(nn.Module):
     def __init__(self, in_channel):

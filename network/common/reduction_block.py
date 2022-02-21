@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from .common import Conv2d
+from .layer import Conv2d
 
 
 class Reduction_A(nn.Module):
