@@ -2,7 +2,7 @@ from re import A
 import torch
 import torch.nn as nn
 
-from .inception_resnet_common import *
+from .common import *
 
 class Inception_resnet(nn.Module):
     '''
@@ -12,11 +12,11 @@ class Inception_resnet(nn.Module):
         super().__init__()
 
         self.stem = Stem(in_channel) # 299, in_channel -> 35, 384
-        self.inception_A = nn.Sequential(*[Inception_A(384, 0.1) for _ in range(n_block_A)]) # 35, 384 -> 35, 384
+        self.inception_A = nn.Sequential(*[Inception_A(384, 512, 0.1) for _ in range(n_block_A)]) # 35, 384 -> 35, 384
         self.reduce_A = Reduction_A(384) # 35, 384 -> 17, 1152
-        self.inception_B = nn.Sequential(*[Inception_B(1152, 0.2) for _ in range(n_block_B)]) # 17, 1152 -> 17, 1152
+        self.inception_B = nn.Sequential(*[Inception_B(1152, 256, 0.2) for _ in range(n_block_B)]) # 17, 1152 -> 17, 1152
         self.reduce_B = Reduction_B(1152) # 17, 1152 -> 8, 2144
-        self.inception_C = nn.Sequential(*[Inception_C(2144, 0.3) for _ in range(n_block_C)]) # 8, 2144 -> 8, 2144
+        self.inception_C = nn.Sequential(*[Inception_C(2144, 128, 0.3) for _ in range(n_block_C)]) # 8, 2144 -> 8, 2144
         self.pool = nn.AvgPool2d(8) # 2144
         self.drop = nn.Dropout(drop_r)
         self.classifier = nn.Linear(2144, n_class)
