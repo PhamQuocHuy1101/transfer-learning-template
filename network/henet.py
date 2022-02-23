@@ -5,6 +5,9 @@ from torchvision import models
 from common import HEBlock
 
 class HENet(nn.Module):
+    '''
+        https://arxiv.org/pdf/2110.10872v1.pdf
+    '''
     def __init__(self, n_class, beta, block_expansion = 1):
         super().__init__()
         n_features = 512
