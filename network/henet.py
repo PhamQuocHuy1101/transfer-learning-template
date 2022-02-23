@@ -2,7 +2,7 @@ from numpy import block
 import torch
 import torch.nn as nn
 from torchvision import models
-from common import HEBlock
+from .common import HEBlock
 
 class HENet(nn.Module):
     '''
@@ -13,7 +13,8 @@ class HENet(nn.Module):
         n_features = 512
         backbone = models.resnet18(pretrained=True)
         self.backbone = nn.Sequential(*list(backbone.children())[:-2])
-        self.HE_block = HEBlock(n_features, n_class * block_expansion, beta)
+        self.reduce_channel = nn.Conv2d(n_features, n_class * block_expansion, 1, 1)
+        self.HE_block = HEBlock(beta)
         self.pool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Linear(n_class * block_expansion, n_class)
 
@@ -24,8 +25,9 @@ class HENet(nn.Module):
         '''
             X: (batch_size, channel, w, h)
         '''
-        feature_map = self.backbone(X)
-        feature_map = self.HE_block(feature_map)
+        feature_map = self.reduce_channel(self.backbone(X))
+        if self.training:
+            feature_map = self.HE_block(feature_map)
         out = self.pool(feature_map)
         out = torch.flatten(out, 1)
         out = self.fc(out)
