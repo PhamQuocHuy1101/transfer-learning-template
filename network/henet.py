@@ -16,6 +16,9 @@ class HENet(nn.Module):
         self.HE_block = HEBlock(n_features, n_class * block_expansion, beta)
         self.pool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Linear(n_class * block_expansion, n_class)
+
+        self.backbone_params = list(self.backbone.parameters())
+        self.head_params = [p for n, p in self.named_parameters() if 'backbone' not in n]
         
     def forward(self, X):
         '''
