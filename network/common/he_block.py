@@ -3,7 +3,7 @@ import torch.nn as nn
 
 
 class HEBlock(nn.Module):
-    def __init__(self, n_features, n_class, beta):
+    def __init__(self, beta):
         super().__init__()
         self.beta = beta
     
