@@ -4,7 +4,7 @@ import torch.nn as nn
 
 class HEMaxBlock(nn.Module):
     def __init__(self, beta):
-        super(HEMaxBlock).__init__()
+        super(HEMaxBlock, self).__init__()
         self.beta = beta
     
     def forward(self, X):
