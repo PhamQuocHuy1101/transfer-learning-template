@@ -2,7 +2,7 @@ from numpy import block
 import torch
 import torch.nn as nn
 from torchvision import models
-from .common import Backbone, HEBlock
+from .common import Backbone, HEMaxBlock, HESigmoidBlock
 
 class HENet(nn.Module):
     '''
