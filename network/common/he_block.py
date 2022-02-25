@@ -29,6 +29,6 @@ class HESigmoidBlock(nn.Module):
         '''
         shape = X.shape
         act_value = torch.sigmoid(X)
-        mask = X == act_value > self.threshold
+        mask = act_value > self.threshold
         X[mask] *= self.beta
         return X
