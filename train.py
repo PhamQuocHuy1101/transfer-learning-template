@@ -22,7 +22,7 @@ else:
        {'params': model.head_params}
     ]
 
-optimizer = optim.Adam(params = param_dict, lr = cf.optim['lr'])
+optimizer = optim.Adam(params = param_dict, lr = cf.optim['lr'], weight_decay = 0.0001)
 scheduler = optim.lr_scheduler.StepLR(optimizer, step_size = cf.optim['step'], gamma=cf.optim['reduce_rate'])
 
 # data
