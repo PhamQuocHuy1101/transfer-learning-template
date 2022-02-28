@@ -4,7 +4,7 @@ import torch.nn as nn
 
 class HEMaxBlock(nn.Module):
     def __init__(self, beta):
-        super(HEMaxBlock).__init__()
+        super(HEMaxBlock, self).__init__()
         self.beta = beta
     
     def forward(self, X):
@@ -29,6 +29,6 @@ class HESigmoidBlock(nn.Module):
         '''
         shape = X.shape
         act_value = torch.sigmoid(X)
-        mask = X == act_value > self.threshold
+        mask = act_value > self.threshold
         X[mask] *= self.beta
         return X
