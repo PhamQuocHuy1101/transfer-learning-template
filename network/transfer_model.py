@@ -16,4 +16,4 @@ class TransferModel(Backbone):
         self.head_params = [p for n, p in self.backbone.named_parameters() if self.bb_info['last_layer'] in n]
 
     def forward(self, X):
-        return self.backbone(X)(X)
+        return self.backbone(X)
