@@ -14,7 +14,7 @@ class HENet(nn.Module):
         n_features = net.bb_info['in_features']
         self.backbone = nn.Sequential(*list(net.backbone.children())[:-2])
         self.reduce_channel = nn.Conv2d(n_features, n_class * block_expansion, 1, 1)
-        self.HE_block = HEBlock(beta)
+        self.HE_block = HEMaxBlock(beta)
         self.pool = nn.AdaptiveAvgPool2d((1, 1))
         self.fc = nn.Linear(n_class * block_expansion, n_class)
 
