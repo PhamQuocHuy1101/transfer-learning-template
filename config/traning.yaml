@@ -1,0 +1,21 @@
+defaults:
+  - model: resnet
+  - data: sample
+
+device: cuda:1
+seed: 30
+
+batch_size: 32
+n_epoch: 30
+
+optim:
+  args:
+    lr: 0.0
+    weight_decay: 0.01
+  scheduler:
+    max_lr: 0.002
+    pct_start: 0.1
+
+store:
+  log: ./log/training.log
+  checkpoint: ./weights/model.pt
