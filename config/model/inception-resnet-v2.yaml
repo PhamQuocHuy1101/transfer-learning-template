@@ -1,0 +1,14 @@
+name: Inception_resnet
+args:
+  in_channel: 3
+  n_class: 2
+  block_A:
+    n_block: 5
+    args: [384, 512, 0.1]
+  block_B:
+    n_block: 10
+    args: [1152, 256, 0.2]
+  block_C:
+    n_block: 5
+    args: [2144, 128, 0.3]
+  drop_r: 0.2

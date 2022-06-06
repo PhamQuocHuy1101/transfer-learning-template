@@ -1,29 +1,17 @@
 import time
 import os
+import logging
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import config as cf
+from torchmetrics import Accuracy
+from tqdm.auto import tqdm
+from easyConfig import setup_config
+# import config as config
 import utils
 
 # Model
 from network import TransferModel, Inception_resnet
-
-model = TransferModel(cf.model['n_class'], cf.model['backbone'], cf.model['drop'])
-# model = Inception_resnet(3, cf.model['n_class'], 5, 10, 5, 0.2)
-model.to(device = cf.device)
-if cf.model['freeze']:
-    param_dict = [
-        {'params': model.head_params}
-    ]
-else:
-    param_dict = [
-       {'params': model.backbone_params, 'lr': cf.optim['lr'] * 0.1},
-       {'params': model.head_params}
-    ]
-
-optimizer = optim.Adam(params = param_dict, lr = cf.optim['lr'], weight_decay = 0.0001)
-scheduler = optim.lr_scheduler.StepLR(optimizer, step_size = cf.optim['step'], gamma=cf.optim['reduce_rate'])
 
 # data
 from data.model_dataset import ModelDataset
@@ -31,67 +19,80 @@ from torch.utils.data import DataLoader
 from data.transform import to_tensor, augmenter
 import pandas as pd
 
-train_df = pd.read_csv(cf.data['train_csv'])
-val_df = pd.read_csv(cf.data['val_csv'])
+def create_store(store_file_list):
+    for file in store_file_list:
+        parent = os.path.split(file)[0]
+        os.makedirs(parent, exist_ok=True)
 
-train_data = ModelDataset(cf.data['dir_path'], train_df.path, train_df.label, augmenter)
-val_data = ModelDataset(cf.data['dir_path'], val_df.path, val_df.label, to_tensor)
-
-train_loader = DataLoader(train_data, batch_size = cf.optim['batch_size'], shuffle = True)
-val_loader = DataLoader(val_data, batch_size = 8, shuffle = True)
-
-# train
-start = time.time()
-from tqdm.auto import tqdm
-
-# class_weight = torch.tensor()
-criterion = nn.CrossEntropyLoss()
-best = -1
-if cf.optim['continue_training'] and os.path.exists(cf.model['checkpoint']):
-    checkpoint = torch.load(cf.model['checkpoint'], map_location = cf.device)
-    model.load_state_dict(checkpoint['model'])
-    optimizer.load_state_dict(checkpoint['optimizer'])
-    best = checkpoint['val_accuracy']
-
-for epoch in range(cf.optim['n_epoch']):
-    print("Epoch ============================ {}".format(epoch))
-    model.train()
+def step_forward(model, optimizer, loader, criterion, device):
     running_loss = 0.0
-    for inputs, labels in tqdm(train_loader):
-        inputs, labels = inputs.to(cf.device), labels.to(cf.device)
+    accuracy = Accuracy().to(device = device)
+    for inputs, labels in tqdm(loader):
+        inputs, labels = inputs.to(device), labels.to(device)
 
-        optimizer.zero_grad()
         outputs = model(inputs)
         loss = criterion(outputs, labels)
-        loss.backward()
-        optimizer.step()
+        if optimizer != None:
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
 
         running_loss += loss.item()
-    
-    running_loss /= len(train_loader)
-    model.eval()
-    with torch.no_grad():
-        val_loss, val_accuracy = 0.0, 0.0
-        for inputs, labels in val_loader:
-            inputs = inputs.to(device = cf.device)
-            outputs = model(inputs)
-            outputs = outputs.cpu()
-            val_loss += criterion(outputs, labels).item()
-            y_predict = torch.softmax(outputs, dim = 1).argmax(dim = 1)
-            val_accuracy += torch.sum(y_predict == labels).item()
-        val_loss /= len(val_loader)
-        val_accuracy /= len(val_data)
-        if best == -1 or val_accuracy >= best:
-            print('Store')
-            best = val_accuracy
-            torch.save({
-                'model': model.state_dict(),
-                'optimizer': model.state_dict(),
-                'val_accuracy': best
-            }, cf.model['checkpoint'])
-    
-    scheduler.step()
-    print('Train loss: {}, val loss {}, val accuracy {}'.format(running_loss, val_loss, val_accuracy))
+        accuracy.update(outputs, labels)
+    return running_loss / len(loader), accuracy.compute().item()
 
-print("Store at: ", cf.model['checkpoint'])
-print("Process time: ", time.time() - start)
+def train(config):
+    print('Loading ========')
+    model = utils.load_template('network', config.model.name, config.model.args)
+    model.to(device = config.device)
+
+    optimizer = optim.Adam(params = model.parameters(), **config.optim.args)
+    scheduler = optim.lr_scheduler.OneCycleLR(optimizer, total_steps=config.n_epoch, **config.optim.scheduler)
+    
+    train_df = pd.read_csv(config.data.train_csv)
+    val_df = pd.read_csv(config.data.val_csv)
+
+    train_data = ModelDataset(config.data.dir_path, train_df.path, train_df.label, augmenter)
+    val_data = ModelDataset(config.data.dir_path, val_df.path, val_df.label, to_tensor)
+
+    train_loader = DataLoader(train_data, batch_size = config.batch_size, shuffle = True)
+    val_loader = DataLoader(val_data, batch_size = 8, shuffle = False) # set = 8 for reduce GPU mem
+
+    # train
+    print('Training ========')
+    start = time.time()
+    # class_weight = torch.tensor() # imbalance dataset
+    criterion = nn.CrossEntropyLoss()
+    best = None
+    for epoch in range(config.n_epoch):
+        print("Epoch ============================ {}".format(epoch))
+        model.train()
+        running_loss, running_acc = step_forward(model, optimizer, train_loader, criterion, config.device)
+
+        model.eval()
+        with torch.no_grad():
+            val_loss, val_accuracy = step_forward(model, None, val_loader, criterion, config.device)
+            
+            if best == None or val_accuracy >= best:
+                print('Store')
+                best = val_accuracy
+                torch.save({
+                    'model': model.state_dict(),
+                    'optimizer': optimizer.state_dict(),
+                    'val_accuracy': best
+                }, config.store.checkpoint)
+        
+        scheduler.step()
+        logging.info('Train loss/accuracy: {:.5f}/{:.5f}, val loss/accuracy {:.5f}/{:.5f}'.format(running_loss, running_acc, val_loss, val_accuracy))
+
+    logging.info("Store at: {}".format(config.store.checkpoint))
+    logging("Process time: {}".format(time.time() - start))
+
+if __name__ == '__main__':
+    # change the working dir to arg 'outputs' in command line
+
+    config = setup_config('config', 'transfer-learning', True)
+    create_store(config.store.values())
+    logging.basicConfig(filename=config.store.log, level=logging.INFO, filemode='w', format='%(levelname)s - %(message)s')
+    utils.seed_everywhere(config.seed)
+    train(config)

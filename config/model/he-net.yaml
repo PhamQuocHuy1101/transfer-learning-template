@@ -1,0 +1,6 @@
+name: HENet
+args:
+  backbone: resnet18
+  n_class: 2
+  beta: 0.5
+  block_expansion: 1

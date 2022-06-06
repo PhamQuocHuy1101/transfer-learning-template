@@ -1,0 +1,5 @@
+name: TransferModel
+args:
+  n_class: 2
+  backbone: b0
+  drop: 0.2
