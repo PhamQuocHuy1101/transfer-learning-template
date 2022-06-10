@@ -3,16 +3,16 @@ import torch.nn as nn
 from torchvision import models
 
 BACKBONE_MAPPING = {
-    'b0': {
-        'm': models.efficientnet_b0,
-        'last_layer': 'classifier',
-        'in_features': 1280
-    },
-    'b1': {
-        'm': models.efficientnet_b0,
-        'last_layer': 'classifier',
-        'in_features': 1280
-    },
+    # 'b0': {
+    #     'm': models.efficientnet_b0,
+    #     'last_layer': 'classifier',
+    #     'in_features': 1280
+    # },
+    # 'b1': {
+    #     'm': models.efficientnet_b0,
+    #     'last_layer': 'classifier',
+    #     'in_features': 1280
+    # },
     'resnet18': {
         'm': models.resnet18,
         'last_layer': 'fc',

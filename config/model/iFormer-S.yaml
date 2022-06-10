@@ -1,0 +1,125 @@
+name: InceptionTransformer
+args:
+  patch_embeddings:
+    - img_size: 224
+      patch_size: 4
+      in_chans: 3
+      embed_dim: 96
+    - img_size: 224
+      patch_size: 4
+      in_chans: 96
+      embed_dim: 192
+    - img_size: 224
+      patch_size: 4
+      in_chans: 192
+      embed_dim: 320
+    - img_size: 224
+      patch_size: 4
+      in_chans: 320
+      embed_dim: 384
+
+  iform_blocks:
+    - n_layer: 3
+      n_channel: 96
+      n_hidden: 256
+      rCh: 2/3
+      rCl: 1/3
+      smoothing: 3
+      n_smoothing: 3
+      block_args:
+        mixer_args:
+          C_h: 0
+          C_l: 0
+          high_proj_args:
+            max_pooling_size: 3
+            max_pooling_stride: 1
+            dw_kernel: 3
+            dw_stride: 1
+            activate: True
+          low_proj_args:
+            avg_pooling_size: 2
+            avg_pooling_stride: 2
+            n_head: 4
+            drop: 0.1
+          fusion_args:
+            kernel_size: 3
+            stride: 1
+        activate: True
+    - n_layer: 3
+      n_channel: 192
+      n_hidden: 256
+      rCh: 1/2
+      rCl: 1/2
+      smoothing: 3
+      n_smoothing: 3
+      block_args:
+        mixer_args:
+          C_h: 0
+          C_l: 0
+          high_proj_args:
+            max_pooling_size: 3
+            max_pooling_stride: 1
+            dw_kernel: 3
+            dw_stride: 1
+            activate: True
+          low_proj_args:
+            avg_pooling_size: 2
+            avg_pooling_stride: 2
+            n_head: 4
+            drop: 0.1
+          fusion_args:
+            kernel_size: 3
+            stride: 1
+        activate: True
+    - n_layer: 9
+      n_channel: 320
+      n_hidden: 256
+      rCh: 3/10
+      rCl: 7/10
+      smoothing: 3
+      n_smoothing: 3
+      block_args:
+        mixer_args:
+          C_h: 0
+          C_l: 0
+          high_proj_args:
+            max_pooling_size: 3
+            max_pooling_stride: 1
+            dw_kernel: 3
+            dw_stride: 1
+            activate: True
+          low_proj_args:
+            avg_pooling_size: 2
+            avg_pooling_stride: 2
+            n_head: 4
+            drop: 0.1
+          fusion_args:
+            kernel_size: 3
+            stride: 1
+        activate: True
+    - n_layer: 3
+      n_channel: 384
+      n_hidden: 256
+      rCh: 1/12
+      rCl: 11/12
+      smoothing: 3
+      n_smoothing: 3
+      block_args:
+        mixer_args:
+          C_h: 0
+          C_l: 0
+          high_proj_args:
+            max_pooling_size: 3
+            max_pooling_stride: 1
+            dw_kernel: 3
+            dw_stride: 1
+            activate: True
+          low_proj_args:
+            avg_pooling_size: 2
+            avg_pooling_stride: 2
+            n_head: 4
+            drop: 0.1
+          fusion_args:
+            kernel_size: 3
+            stride: 1
+        activate: True

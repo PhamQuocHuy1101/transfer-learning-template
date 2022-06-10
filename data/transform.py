@@ -7,6 +7,6 @@ to_tensor = T.Compose([
 ])
 
 augmenter = T.Compose([
-    T.RandAugment(),
+    # T.RandAugment(),
     to_tensor
 ])
