@@ -1,2 +1,6 @@
 __pycache__/
 outputs/
+*.zip
+*.csv
+data/*
+!data/to_format.py

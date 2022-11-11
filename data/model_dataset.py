@@ -10,7 +10,7 @@ class ModelDataset(Dataset):
         self.labels = labels
         self.scale = scale
         self.transform = transform
-
+       
     def __len__(self):
         return int(len(self.labels) * self.scale)
 

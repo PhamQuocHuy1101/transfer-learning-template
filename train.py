@@ -46,17 +46,19 @@ def train(config):
     model = utils.load_template('network', config.model.name, config.model.args)
     model.to(device = config.device)
 
-    optimizer = optim.Adam(params = model.parameters(), **config.optim.args)
+    # optimizer = optim.Adam(params = model.parameters(), **config.optim.args)
+    optimizer = utils.smart_optimizer(model, 'AdamW',  **config.optim.args)
+    
     scheduler = optim.lr_scheduler.OneCycleLR(optimizer, total_steps=config.n_epoch, **config.optim.scheduler)
     
     train_df = pd.read_csv(config.data.train_csv)
     val_df = pd.read_csv(config.data.val_csv)
 
-    train_data = ModelDataset(config.data.dir_path, train_df.path, train_df.label, augmenter)
+    train_data = ModelDataset(config.data.dir_path, train_df.path, train_df.label, augmenter, config.data.scale)
     val_data = ModelDataset(config.data.dir_path, val_df.path, val_df.label, to_tensor)
 
     train_loader = DataLoader(train_data, batch_size = config.batch_size, shuffle = True)
-    val_loader = DataLoader(val_data, batch_size = 8, shuffle = False) # set = 8 for reduce GPU mem
+    val_loader = DataLoader(val_data, batch_size = 8, shuffle = True) # set = 8 for reduce GPU mem
 
     # train
     print('Training ========')
@@ -86,12 +88,12 @@ def train(config):
         logging.info('Train loss/accuracy: {:.5f}/{:.5f}, val loss/accuracy {:.5f}/{:.5f}'.format(running_loss, running_acc, val_loss, val_accuracy))
 
     logging.info("Store at: {}".format(config.store.checkpoint))
-    logging("Process time: {}".format(time.time() - start))
+    logging.info("Process time: {}".format(time.time() - start))
 
 if __name__ == '__main__':
     # change the working dir to arg 'outputs' in command line
 
-    config = setup_config('config', 'transfer-learning', True)
+    config = setup_config('config', 'training', True)
     create_store(config.store.values())
     logging.basicConfig(filename=config.store.log, level=logging.INFO, filemode='w', format='%(levelname)s - %(message)s')
     utils.seed_everywhere(config.seed)
